@@ -36,7 +36,7 @@ optimization = ["ortools>=9,<10"]
 flatcam = "flatcam.__main__:main"
 
 [dependency-groups]
-dev = ["pytest"]
+dev = ["pytest", "setuptools==69.5.1", "py2app==0.28.8; sys_platform == 'darwin'"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -131,8 +131,31 @@ Useful Makefile targets:
 make sync                   # uv sync (core deps only)
 make sync-all               # uv sync --extra optimization
 make run                    # uv run flatcam
+make bundle-alias           # build alias app bundle for fast debug
+make bundle                 # build self-contained py2app bundle
 make test                   # uv run pytest tests/
 make lock                   # uv lock (regenerate lockfile)
+```
+
+### Build macOS `.app` bundle (py2app)
+
+For a self-contained macOS app bundle, use py2app from the uv-managed environment:
+
+```bash
+# Ensure all dependencies are installed, including optimization extras (OR-Tools)
+uv sync --extra optimization --group dev
+
+# Fast validation build (uses sources in place)
+make bundle-alias
+
+# Final self-contained app bundle
+make bundle
+```
+
+The generated application is:
+
+```text
+dist/FlatCAM.app
 ```
 
 ### Windows

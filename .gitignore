@@ -6,3 +6,5 @@ build/
 .mypy_cache/
 src/*.egg-info/
 .venv/
+dist/
+build/

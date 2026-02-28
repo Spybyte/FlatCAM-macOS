@@ -180,7 +180,7 @@ class App(QtCore.QObject):
     # ###############################################################################################################
     # version = "Unstable Version"
     version = 8.994
-    version_date = "2020/11/7"
+    version_date = "2026/02/28"
     beta = True
 
     engine = '3D'
@@ -2925,17 +2925,6 @@ class App(QtCore.QObject):
                 self.setWindowIcon(parent.app_icon)
                 self.setWindowTitle(_("About"))
                 self.resize(600, 200)
-                # self.setStyleSheet("background-image: url(share/flatcam_icon256.png); background-attachment: fixed")
-                # self.setStyleSheet(
-                #     "border-image: url(share/flatcam_icon256.png) 0 0 0 0 stretch stretch; "
-                #     "background-attachment: fixed"
-                # )
-
-                # bgimage = QtGui.QImage(self.resource_location + '/flatcam_icon256.png')
-                # s_bgimage = bgimage.scaled(QtCore.QSize(self.frameGeometry().width(), self.frameGeometry().height()))
-                # palette = QtGui.QPalette()
-                # palette.setBrush(10, QtGui.QBrush(bgimage))  # 10 = Windowrole
-                # self.setPalette(palette)
 
                 logo = QtWidgets.QLabel()
                 logo.setPixmap(QtGui.QPixmap(self.app.resource_location + '/flatcam_icon256.png'))

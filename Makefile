@@ -5,6 +5,50 @@
 install_dependencies:
 	sudo -H ./setup_ubuntu.sh
 
+bundle-icon:
+	rm -rf build/FlatCAM.iconset
+	mkdir -p build/FlatCAM.iconset
+	sips -z 16 16 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_16x16.png
+	sips -z 32 32 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_16x16@2x.png
+	sips -z 32 32 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_32x32.png
+	sips -z 64 64 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_32x32@2x.png
+	sips -z 128 128 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_128x128.png
+	sips -z 256 256 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_128x128@2x.png
+	sips -z 256 256 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_256x256.png
+	sips -z 512 512 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_256x256@2x.png
+	sips -z 512 512 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_512x512.png
+	sips -z 1024 1024 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_512x512@2x.png
+	iconutil -c icns build/FlatCAM.iconset -o assets/resources/FlatCAM.icns
+
+bundle-alias: bundle-icon
+	rm -rf build dist
+	uv run python setup.py py2app -A
+
+bundle: bundle-icon
+	@# Move old build artifacts aside first (avoids "Directory not empty" when
+	@# Finder or a lingering process still holds file handles in dist/).
+	rm -rf build .dist_old
+	-mv dist .dist_old 2>/dev/null; rm -rf .dist_old &
+	uv run python setup.py py2app
+	@echo "Fixing bundled native libraries..."
+	@# py2app's macholib can corrupt code signatures when rewriting load paths.
+	@# Fix: replace corrupted dylibs with fresh copies, rewrite install names, re-sign.
+	@for lib in dist/FlatCAM.app/Contents/Frameworks/*.dylib; do \
+		if ! codesign -v "$$lib" 2>/dev/null; then \
+			name=$$(basename "$$lib"); \
+			src="/opt/homebrew/lib/$$name"; \
+			if [ -f "$$src" ]; then \
+				echo "  Replacing corrupted $$name with fresh copy from homebrew..."; \
+				cp "$$src" "$$lib"; \
+				install_name_tool -id "@executable_path/../Frameworks/$$name" "$$lib" 2>/dev/null; \
+			fi; \
+			codesign --force --sign - "$$lib" 2>/dev/null || echo "  WARNING: could not sign $$name"; \
+		fi; \
+	done
+	@echo "Re-signing bundle..."
+	@codesign --force --deep --sign - dist/FlatCAM.app 2>/dev/null || true
+	@echo "Bundle created at dist/FlatCAM.app"
+
 # uv-based development targets
 sync:
 	uv sync

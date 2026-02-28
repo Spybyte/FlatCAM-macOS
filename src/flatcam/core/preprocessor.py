@@ -148,20 +148,46 @@ class AppPreProcTools(object, metaclass=ABCPreProcRegister):
 
 def load_preprocessors(app):
     import glob
+    import sys
+    import importlib
     from pathlib import Path
 
-    # Built-in preprocessors shipped with the package
-    _pkg_preprocessors = str(Path(__file__).resolve().parent.parent / 'preprocessors')
+    # -------------------------------------------------------------------------
+    # When running inside a frozen py2app bundle the preprocessor .py files
+    # live as compiled .pyc entries inside the application zip (python3XX.zip).
+    # glob.glob() cannot see into zip archives, so `SourceFileLoader` won't
+    # find anything. In that case we fall back to importlib which *can* import
+    # from zip-stored bytecode.
+    # -------------------------------------------------------------------------
+    if getattr(sys, 'frozen', False):
+        import pkgutil
+        pkg_name = 'flatcam.preprocessors'
+        try:
+            pkg = importlib.import_module(pkg_name)
+        except ImportError:
+            app.log.error("Could not import preprocessors package: %s" % pkg_name)
+            return preprocessors
 
-    preprocessors_path_search = [
-        os.path.join(app.data_path, 'preprocessors', '*.py'),  # user-installed
-        os.path.join(_pkg_preprocessors, '*.py'),               # package-bundled
-        os.path.join('preprocessors', '*.py')                   # legacy CWD-relative
-    ]
-    for path_search in preprocessors_path_search:
-        for file in glob.glob(path_search):
+        for importer, modname, ispkg in pkgutil.walk_packages(
+                path=pkg.__path__, prefix=pkg.__name__ + '.'):
             try:
-                SourceFileLoader('FlatCAMPostProcessor', file).load_module()
+                importlib.import_module(modname)
             except Exception as e:
-                app.log.error(str(e))
+                app.log.error("Failed to load preprocessor %s: %s" % (modname, str(e)))
+    else:
+        # Normal (non-frozen) loading from .py source files on disk
+        _pkg_preprocessors = str(Path(__file__).resolve().parent.parent / 'preprocessors')
+
+        preprocessors_path_search = [
+            os.path.join(app.data_path, 'preprocessors', '*.py'),  # user-installed
+            os.path.join(_pkg_preprocessors, '*.py'),               # package-bundled
+            os.path.join('preprocessors', '*.py')                   # legacy CWD-relative
+        ]
+        for path_search in preprocessors_path_search:
+            for file in glob.glob(path_search):
+                try:
+                    SourceFileLoader('FlatCAMPostProcessor', file).load_module()
+                except Exception as e:
+                    app.log.error(str(e))
+
     return preprocessors
