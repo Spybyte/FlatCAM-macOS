@@ -1856,8 +1856,8 @@ class MainGUI(QtWidgets.QMainWindow):
         # restore the toolbar view
         self.restore_toolbar_view()
 
-        # restore the GUI geometry
-        self.restore_main_win_geom()
+        # NOTE: GUI geometry is restored AFTER show() in App.__init__() via QTimer
+        # to ensure macOS window manager honors the saved size.
 
         # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         # %%%%%%%%%%%%%%%%% GUI Building FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1921,11 +1921,22 @@ class MainGUI(QtWidgets.QMainWindow):
 
     def restore_main_win_geom(self):
         try:
-            self.setGeometry(self.app.defaults["global_def_win_x"],
-                             self.app.defaults["global_def_win_y"],
-                             self.app.defaults["global_def_win_w"],
-                             self.app.defaults["global_def_win_h"])
-            self.splitter.setSizes([self.app.defaults["global_def_notebook_width"], 0])
+            x = self.app.defaults["global_def_win_x"]
+            y = self.app.defaults["global_def_win_y"]
+            w = self.app.defaults["global_def_win_w"]
+            h = self.app.defaults["global_def_win_h"]
+            nb_w = self.app.defaults["global_def_notebook_width"]
+
+            # Use move() + resize() instead of setGeometry() for reliable macOS behavior.
+            # setGeometry() often has its size component ignored by the macOS window manager
+            # when called before or right after show().
+            self.move(x, y)
+            self.resize(w, h)
+
+            if self.app.defaults["global_project_at_startup"] is True:
+                self.splitter.setSizes([nb_w, max(1, w - nb_w)])
+            else:
+                self.splitter.setSizes([0, 1])
         except KeyError as e:
             log.debug("appGUI.MainGUI.restore_main_win_geom() --> %s" % str(e))
 

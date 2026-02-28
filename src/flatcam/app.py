@@ -781,10 +781,9 @@ class App(QtCore.QObject):
         # this is a flag to signal to other tools that the ui tooltab is locked and not accessible
         self.tool_tab_locked = False
 
-        # decide if to show or hide the Notebook side of the screen at startup
-        if self.defaults["global_project_at_startup"] is True:
-            self.ui.splitter.setSizes([1, 1])
-        else:
+        # Notebook/splitter visibility is now restored together with window geometry
+        # after show() via restore_main_win_geom() to avoid overwriting saved values.
+        if self.defaults["global_project_at_startup"] is not True:
             self.ui.splitter.setSizes([0, 1])
 
         # Sets up FlatCAMObj, FCProcess and FCProcessContainer.
@@ -1680,6 +1679,15 @@ class App(QtCore.QObject):
                     self.ui.show()
             else:
                 self.ui.show()
+
+            # Restore saved window geometry AFTER show() via a deferred call.
+            # On macOS, setGeometry()/resize() called before show() often has the size
+            # component ignored by the window manager. Using QTimer.singleShot(0, ...)
+            # ensures the event loop processes the show() first, then applies geometry.
+            if not (mgui_settings.contains("maximized_gui") and
+                    mgui_settings.value('maximized_gui', type=bool)):
+                from PyQt5.QtCore import QTimer
+                QTimer.singleShot(0, self.ui.restore_main_win_geom)
 
             if self.defaults["global_systray_icon"]:
                 self.trayIcon.show()

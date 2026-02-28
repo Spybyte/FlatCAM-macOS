@@ -398,6 +398,7 @@ class Excellon(Geometry):
                 match = self.meas_re.match(eline)
                 if match:
                     self.units = {"1": "MM", "2": "IN"}[match.group(1)]
+                    self.excellon_units_found = self.units
 
                     # Modified for issue #80
                     log.debug("ALternative M71/M72 units found, before conversion: %s" % self.units)

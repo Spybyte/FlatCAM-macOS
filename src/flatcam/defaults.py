@@ -60,7 +60,7 @@ class FlatCAMDefaults:
         "global_def_win_y": 100,
         "global_def_win_w": 1024,
         "global_def_win_h": 650,
-        "global_def_notebook_width": 1,
+        "global_def_notebook_width": 290,
 
         # Constants...
         "global_defaults_save_period_ms": 20000,  # Time between default saves.
