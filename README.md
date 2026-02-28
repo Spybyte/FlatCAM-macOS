@@ -139,24 +139,31 @@ make lock                   # uv lock (regenerate lockfile)
 
 ### Build macOS `.app` bundle (py2app)
 
-For a self-contained macOS app bundle, use py2app from the uv-managed environment:
+For a self-contained macOS app bundle, use py2app (0.28.10) from the uv-managed environment:
 
 ```bash
 # Ensure all dependencies are installed, including optimization extras (OR-Tools)
 uv sync --extra optimization --group dev
 
-# Fast validation build (uses sources in place)
+# Fast validation build (uses sources in place, symlinks to source)
 make bundle-alias
 
-# Final self-contained app bundle
+# Final self-contained app bundle (standalone, distributable)
 make bundle
+
+# Verify code signature
+codesign -v --deep dist/FlatCAM.app
 ```
 
-The generated application is:
+The generated application is at `dist/FlatCAM.app`.
 
-```text
-dist/FlatCAM.app
-```
+The build automatically:
+- Generates a multi-resolution `.icns` icon (only when the source PNG changes)
+- Bundles all Python dependencies, Qt plugins, assets, config, and locale files
+- Verifies and repairs any dylib code signatures corrupted by macholib
+- Ad-hoc signs the final `.app` bundle
+
+The bundle version (`CFBundleVersion`) is read automatically from `src/flatcam/__init__.py`.
 
 ### Windows
 

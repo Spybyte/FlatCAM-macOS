@@ -9,6 +9,13 @@ CHANGELOG for FlatCAM beta
 
 28.02.2026
 
+- Upgraded py2app from 0.28.8 to 0.28.10 (Python 3.14 support, setuptools 82 compatibility)
+- Relaxed setuptools pin from ==69.5.1 to >=69,<83 for broader compatibility
+- Added install_requires compatibility shim in setup.py for py2app >=0.28.9 (rejects install_requires auto-populated from pyproject.toml)
+- Eliminated version duplication: setup.py plist now reads CFBundleVersion/CFBundleShortVersionString dynamically from flatcam.__version__ instead of hardcoding
+- Removed redundant frozen-app checks in app.py where both branches executed identical code (config path at ~line 3703, example path at ~line 9170)
+- Simplified Makefile bundle-icon target: replaced 10 repetitive sips calls with a loop; added Make-style dependency so .icns is only rebuilt when source PNG changes
+- Improved Makefile bundle target: dylib signature repair now reports count of repaired libraries instead of silent replacement
 - Migrated package management from pip/requirements.txt to uv (https://docs.astral.sh/uv/)
 - Added .python-version file pinning Python 3.14
 - Rewrote pyproject.toml: 19 runtime dependencies with major-version pins, dynamic version from __version__, entry point `flatcam`, optional `optimization` extra for ortools
