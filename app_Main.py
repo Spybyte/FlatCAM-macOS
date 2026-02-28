@@ -37,7 +37,18 @@ from xml.dom.minidom import parseString as parse_xml_string
 
 from multiprocessing.connection import Listener, Client
 from multiprocessing import Pool
+import multiprocessing
+import sys as _sys
 import socket
+
+# On macOS Python 3.8+ the default start method changed from 'fork' to 'spawn'.
+# 'spawn' causes worker processes to re-import all modules (including PyQt5/Cocoa),
+# which hangs silently. Force 'fork' to restore the pre-3.8 behaviour.
+if _sys.platform == 'darwin':
+    try:
+        multiprocessing.set_start_method('fork')
+    except RuntimeError:
+        pass  # already set
 
 # ####################################################################################################################
 # ###################################      Imports part of FlatCAM       #############################################
@@ -3640,19 +3651,20 @@ class App(QtCore.QObject):
         self.log.debug("App.quit_application() --> App UI state saved.")
 
         # try to quit the Socket opened by ArgsThread class
-        try:
-            # self.new_launch.thread_exit = True
-            # self.new_launch.listener.close()
-            self.new_launch.stop.emit()
-        except Exception as err:
-            self.log.debug("App.quit_application() --> %s" % str(err))
+        if sys.platform == 'win32' or sys.platform == 'linux':
+            try:
+                # self.new_launch.thread_exit = True
+                # self.new_launch.listener.close()
+                self.new_launch.stop.emit()
+            except Exception as err:
+                self.log.debug("App.quit_application() --> %s" % str(err))
 
-        # try to quit the QThread that run ArgsThread class
-        try:
-            # del self.new_launch
-            self.listen_th.quit()
-        except Exception as e:
-            self.log.debug("App.quit_application() --> %s" % str(e))
+            # try to quit the QThread that run ArgsThread class
+            try:
+                # del self.new_launch
+                self.listen_th.quit()
+            except Exception as e:
+                self.log.debug("App.quit_application() --> %s" % str(e))
 
         # terminate workers
         # self.workers.__del__()

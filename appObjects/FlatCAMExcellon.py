@@ -1172,9 +1172,10 @@ class ExcellonObject(FlatCAMObj, Excellon):
                 return new_color
 
         # this stays for compatibility reasons, in case we try to open old projects
-        try:
-            __ = iter(self.solid_geometry)
-        except TypeError:
+        # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+        if hasattr(self.solid_geometry, 'geoms'):
+            self.solid_geometry = list(self.solid_geometry.geoms)
+        elif not isinstance(self.solid_geometry, (list, tuple)):
             self.solid_geometry = [self.solid_geometry]
 
         visible = visible if visible else self.ui.plot_cb.get_value()

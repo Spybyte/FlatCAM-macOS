@@ -740,7 +740,9 @@ class GerberObject(FlatCAMObj, Gerber):
         if invert:
             try:
                 pl = []
-                for p in geom:
+                # Shapely 2.x: Multi* geometries are not directly iterable
+                geom_iter = geom.geoms if hasattr(geom, 'geoms') else geom
+                for p in geom_iter:
                     if p is not None:
                         if isinstance(p, Polygon):
                             pl.append(Polygon(p.exterior.coords[::-1], p.interiors))
@@ -891,9 +893,10 @@ class GerberObject(FlatCAMObj, Gerber):
             geometry = self.solid_geometry
 
         # Make sure geometry is iterable.
-        try:
-            __ = iter(geometry)
-        except TypeError:
+        # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+        if hasattr(geometry, 'geoms'):
+            geometry = list(geometry.geoms)
+        elif not isinstance(geometry, (list, tuple)):
             geometry = [geometry]
 
         if self.app.is_legacy is False:
@@ -1000,8 +1003,11 @@ class GerberObject(FlatCAMObj, Gerber):
                                 if only_flashes and not isinstance(elem['follow'], Point):
                                     continue
                                 geo = elem['solid']
+                                # Shapely 2.x: Multi* geometries are not directly iterable
+                                geo_iter = geo.geoms if hasattr(geo, 'geoms') else [geo] \
+                                    if not isinstance(geo, (list, tuple)) else geo
                                 try:
-                                    for el in geo:
+                                    for el in geo_iter:
                                         shape_key = app_obj.add_mark_shape(shape=el, color=color, face_color=color,
                                                                            visible=visibility)
                                         app_obj.mark_shapes_storage[aperture_to_plot_mark].append(shape_key)

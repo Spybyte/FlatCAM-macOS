@@ -180,7 +180,7 @@ class Gerber(Geometry):
         # Optional start with G02 or G03, optional end with D01 or D02 with
         # optional coordinates but at least one in any order.
         self.circ_re = re.compile(r'^(?:G0?([23]))?(?=.*X([\+-]?\d+))?(?=.*Y([\+-]?\d+))' +
-                                  '?(?=.*I([\+-]?\d+))?(?=.*J([\+-]?\d+))?[XYIJ][^D]*(?:D0([12]))?\*$')
+                                  r'?(?=.*I([\+-]?\d+))?(?=.*J([\+-]?\d+))?[XYIJ][^D]*(?:D0([12]))?\*$')
 
         # G01/2/3 Occurring without coordinates
         self.interp_re = re.compile(r'^(?:G0?([123]))\*')
@@ -1549,13 +1549,19 @@ class Gerber(Geometry):
                     # loaded. Instead of applying a union I add to a list of polygons.
                     final_poly = []
                     try:
-                        for poly in new_poly:
+                        # Shapely 2.x: Multi* geometries are not directly iterable
+                        new_poly_iter = new_poly.geoms if hasattr(new_poly, 'geoms') else [new_poly]
+                        for poly in new_poly_iter:
                             final_poly.append(poly)
                     except TypeError:
                         final_poly.append(new_poly)
 
                     try:
-                        for poly in self.solid_geometry:
+                        # Shapely 2.x: Multi* geometries are not directly iterable
+                        sg_iter = self.solid_geometry.geoms if hasattr(self.solid_geometry, 'geoms') \
+                            else self.solid_geometry if isinstance(self.solid_geometry, (list, tuple)) \
+                            else [self.solid_geometry]
+                        for poly in sg_iter:
                             final_poly.append(poly)
                     except TypeError:
                         final_poly.append(self.solid_geometry)
@@ -1568,7 +1574,11 @@ class Gerber(Geometry):
                 if self.app.defaults['gerber_extra_buffering']:
                     candidate_geo = []
                     try:
-                        for p in self.solid_geometry:
+                        # Shapely 2.x: Multi* geometries are not directly iterable
+                        sg_iter = self.solid_geometry.geoms if hasattr(self.solid_geometry, 'geoms') \
+                            else self.solid_geometry if isinstance(self.solid_geometry, (list, tuple)) \
+                            else [self.solid_geometry]
+                        for p in sg_iter:
                             candidate_geo.append(p.buffer(-0.0000001))
                     except TypeError:
                         candidate_geo.append(self.solid_geometry.buffer(-0.0000001))
@@ -1724,10 +1734,10 @@ class Gerber(Geometry):
 
         def bounds_rec(obj):
             if type(obj) is list and type(obj) is not MultiPolygon:
-                minx = np.Inf
-                miny = np.Inf
-                maxx = -np.Inf
-                maxy = -np.Inf
+                minx = np.inf
+                miny = np.inf
+                maxx = -np.inf
+                maxy = -np.inf
 
                 for k in obj:
                     if type(k) is dict:
@@ -1859,9 +1869,10 @@ class Gerber(Geometry):
         # flatten the self.solid_geometry list for import_svg() to import SVG as Gerber
         self.solid_geometry = list(self.flatten_list(self.solid_geometry))
 
-        try:
-            __ = iter(self.solid_geometry)
-        except TypeError:
+        # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+        if hasattr(self.solid_geometry, 'geoms'):
+            self.solid_geometry = list(self.solid_geometry.geoms)
+        elif not isinstance(self.solid_geometry, (list, tuple)):
             self.solid_geometry = [self.solid_geometry]
 
         if '0' not in self.apertures:
@@ -2391,10 +2402,12 @@ class Gerber(Geometry):
                         return obj
 
             res = buffer_geom(self.solid_geometry)
-            try:
-                __ = iter(res)
+            # Shapely 2.x: Multi* geometries are not directly iterable
+            if hasattr(res, 'geoms'):
+                self.solid_geometry = list(res.geoms)
+            elif isinstance(res, (list, tuple)):
                 self.solid_geometry = res
-            except TypeError:
+            else:
                 self.solid_geometry = [res]
 
             # we need to buffer the geometry stored in the Gerber apertures, too
@@ -2497,7 +2510,7 @@ class Gerber(Geometry):
                 if 'geometry' in self.apertures[apid]:
                     new_solid_geo += [geo_el['solid'] for geo_el in self.apertures[apid]['geometry']]
 
-            self.solid_geometry = MultiPolygon(new_solid_geo)
+            self.solid_geometry = MultiPolygon([g for g in new_solid_geo if isinstance(g, Polygon)])
             self.solid_geometry = self.solid_geometry.buffer(0.000001)
             self.solid_geometry = self.solid_geometry.buffer(-0.000001)
 

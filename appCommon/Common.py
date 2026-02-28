@@ -974,7 +974,7 @@ def nearest_point(origin, points_list):
     :return:            Nearest Point
     :rtype:             Point
     """
-    old_dist = np.Inf
+    old_dist = np.inf
     nearest_pt = None
 
     for pt in points_list:

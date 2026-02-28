@@ -538,8 +538,11 @@ class FlatCAMObj(QtCore.QObject):
 
                 if obj_prop.kind.lower() == 'gerber' and geo:
                     # calculate copper area
+                    # Shapely 2.x: Multi* geometries are not directly iterable
+                    geo_iter = geo.geoms if hasattr(geo, 'geoms') else [geo] \
+                        if not isinstance(geo, (list, tuple)) else geo
                     try:
-                        for geo_el in geo:
+                        for geo_el in geo_iter:
                             copper_area += geo_el.area
                     except TypeError:
                         copper_area += geo.area

@@ -29,8 +29,17 @@ def apply_patches():
     }
     """
 
-    markers._marker_dict['++'] = cross_lines
-    markers.marker_types = tuple(sorted(list(markers._marker_dict.copy().keys())))
+    # Patch MarkersVisual to have crossed lines marker (if not already present)
+    if hasattr(markers, '_marker_dict'):
+        # Old VisPy API
+        markers._marker_dict['++'] = cross_lines
+        markers.marker_types = tuple(sorted(list(markers._marker_dict.copy().keys())))
+    elif hasattr(markers, 'symbol_shaders'):
+        # New VisPy API (>= 0.14): '++' is already aliased to 'cross_lines'.
+        # Register under 'cross_lines' if missing.
+        if 'cross_lines' not in markers.symbol_shaders:
+            markers.symbol_shaders['cross_lines'] = cross_lines
+            markers.symbol_shader_values['cross_lines'] = max(markers.symbol_shader_values.values()) + 1
 
     # # Add clear_data method to LineVisual to have possibility of clearing data
     # def clear_data(self):

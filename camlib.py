@@ -756,10 +756,10 @@ class Geometry(object):
 
         def bounds_rec(obj):
             if type(obj) is list:
-                gminx = np.Inf
-                gminy = np.Inf
-                gmaxx = -np.Inf
-                gmaxy = -np.Inf
+                gminx = np.inf
+                gminy = np.inf
+                gmaxx = -np.inf
+                gmaxy = -np.inf
 
                 for k in obj:
                     if type(k) is dict:
@@ -898,6 +898,9 @@ class Geometry(object):
 
         # ## If iterable, expand recursively.
         try:
+            # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+            if hasattr(geometry, 'geoms'):
+                geometry = list(geometry.geoms)
             for geo in geometry:
                 interiors.extend(self.get_interiors(geometry=geo))
 
@@ -925,6 +928,9 @@ class Geometry(object):
 
         # ## If iterable, expand recursively.
         try:
+            # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+            if hasattr(geometry, 'geoms'):
+                geometry = list(geometry.geoms)
             for geo in geometry:
                 exteriors.extend(self.get_exteriors(geometry=geo))
 
@@ -955,6 +961,9 @@ class Geometry(object):
 
         # ## If iterable, expand recursively.
         try:
+            # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+            if hasattr(geometry, 'geoms'):
+                geometry = list(geometry.geoms)
             for geo in geometry:
                 if geo is not None:
                     self.flatten(geometry=geo,
@@ -1138,7 +1147,10 @@ class Geometry(object):
 
     def flatten_list(self, obj_list):
         for item in obj_list:
-            if isinstance(item, Iterable) and not isinstance(item, (str, bytes)):
+            # Shapely 2.x: Multi* geometries are not Iterable, expand via .geoms
+            if hasattr(item, 'geoms'):
+                yield from self.flatten_list(item.geoms)
+            elif isinstance(item, Iterable) and not isinstance(item, (str, bytes)):
                 yield from self.flatten_list(item)
             else:
                 yield item
@@ -2428,6 +2440,9 @@ class Geometry(object):
 
         def rotate_geom(obj):
             try:
+                # Shapely 2.x: Multi* geometries are not directly iterable
+                if hasattr(obj, 'geoms'):
+                    obj = list(obj.geoms)
                 new_obj = []
                 for g in obj:
                     new_obj.append(rotate_geom(g))
@@ -2496,6 +2511,9 @@ class Geometry(object):
 
         def skew_geom(obj):
             try:
+                # Shapely 2.x: Multi* geometries are not directly iterable
+                if hasattr(obj, 'geoms'):
+                    obj = list(obj.geoms)
                 new_obj = []
                 for g in obj:
                     new_obj.append(skew_geom(g))
@@ -2597,11 +2615,15 @@ class Geometry(object):
                     self.el_count = 0
 
                     res = buffer_geom(self.tools[tool]['solid_geometry'])
-                    try:
-                        __ = iter(res)
-                        self.tools[tool]['solid_geometry'] = res
-                    except TypeError:
-                        self.tools[tool]['solid_geometry'] = [res]
+                    # Shapely 2.x: Multi* geometries are not directly iterable
+                    if hasattr(res, 'geoms'):
+                        self.tools[tool]['solid_geometry'] = list(res.geoms)
+                    else:
+                        try:
+                            __ = iter(res)
+                            self.tools[tool]['solid_geometry'] = res
+                        except TypeError:
+                            self.tools[tool]['solid_geometry'] = [res]
 
             # variables to display the percentage of work done
             self.geo_len = 0
@@ -3208,7 +3230,7 @@ class CNCjob(Geometry):
                 self.xy_toolchange = None
             else:
                 # either originally it was a string or not, xy_toolchange will be made string
-                self.xy_toolchange = re.sub('[()\[\]]', '', str(self.xy_toolchange)) if self.xy_toolchange else None
+                self.xy_toolchange = re.sub(r'[()\[\]]', '', str(self.xy_toolchange)) if self.xy_toolchange else None
 
                 # and now, xy_toolchange is made into a list of floats in format [x, y]
                 if self.xy_toolchange:
@@ -3233,7 +3255,7 @@ class CNCjob(Geometry):
                 self.xy_end = None
             else:
                 # either originally it was a string or not, xy_end will be made string
-                self.xy_end = re.sub('[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
+                self.xy_end = re.sub(r'[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
 
                 # and now, xy_end is made into a list of floats in format [x, y]
                 if self.xy_end:
@@ -3618,7 +3640,7 @@ class CNCjob(Geometry):
                 self.xy_end = None
             else:
                 # either originally it was a string or not, xy_end will be made string
-                self.xy_end = re.sub('[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
+                self.xy_end = re.sub(r'[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
 
                 # and now, xy_end is made into a list of floats in format [x, y]
                 if self.xy_end:
@@ -3638,7 +3660,7 @@ class CNCjob(Geometry):
                 self.xy_toolchange = None
             else:
                 # either originally it was a string or not, xy_toolchange will be made string
-                self.xy_toolchange = re.sub('[()\[\]]', '', str(self.xy_toolchange)) if self.xy_toolchange else None
+                self.xy_toolchange = re.sub(r'[()\[\]]', '', str(self.xy_toolchange)) if self.xy_toolchange else None
 
                 # and now, xy_toolchange is made into a list of floats in format [x, y]
                 if self.xy_toolchange:
@@ -3873,7 +3895,7 @@ class CNCjob(Geometry):
             if self.xy_toolchange == '':
                 self.xy_toolchange = None
             else:
-                self.xy_toolchange = re.sub('[()\[\]]', '', str(self.xy_toolchange)) if self.xy_toolchange else None
+                self.xy_toolchange = re.sub(r'[()\[\]]', '', str(self.xy_toolchange)) if self.xy_toolchange else None
 
                 if self.xy_toolchange:
                     self.xy_toolchange = [float(eval(a)) for a in self.xy_toolchange.split(",")]
@@ -3888,7 +3910,7 @@ class CNCjob(Geometry):
             pass
 
         # XY_end parameter
-        self.xy_end = re.sub('[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
+        self.xy_end = re.sub(r'[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
         if self.xy_end and self.xy_end != '':
             self.xy_end = [float(eval(a)) for a in self.xy_end.split(",")]
         if self.xy_end and len(self.xy_end) < 2:
@@ -5271,7 +5293,10 @@ class CNCjob(Geometry):
 
         temp_solid_geometry = []
         if offset != 0.0:
-            for it in geometry:
+            # Shapely 2.x: Multi* geometries are not directly iterable
+            geom_iter = geometry.geoms if hasattr(geometry, 'geoms') else \
+                [geometry] if not isinstance(geometry, (list, tuple)) else geometry
+            for it in geom_iter:
                 # if the geometry is a closed shape then create a Polygon out of it
                 if isinstance(it, LineString):
                     c = it.coords
@@ -5306,7 +5331,7 @@ class CNCjob(Geometry):
         self.startz = float(startz) if startz is not None else  self.app.defaults["geometry_startz"]
         self.z_end = float(endz) if endz is not None else  self.app.defaults["geometry_endz"]
 
-        self.xy_end = re.sub('[()\[\]]', '', str(endxy)) if endxy else  self.app.defaults["geometry_endxy"]
+        self.xy_end = re.sub(r'[()\[\]]', '', str(endxy)) if endxy else  self.app.defaults["geometry_endxy"]
 
         if self.xy_end and self.xy_end != '':
             self.xy_end = [float(eval(a)) for a in self.xy_end.split(",")]
@@ -5328,7 +5353,7 @@ class CNCjob(Geometry):
             if toolchangexy == '':
                 self.xy_toolchange = None
             else:
-                self.xy_toolchange = re.sub('[()\[\]]', '', str(toolchangexy)) \
+                self.xy_toolchange = re.sub(r'[()\[\]]', '', str(toolchangexy)) \
                     if toolchangexy else self.app.defaults["geometry_toolchangexy"]
 
                 if self.xy_toolchange and self.xy_toolchange != '':
@@ -5608,10 +5633,10 @@ class CNCjob(Geometry):
 
         def bounds_rec(obj):
             if type(obj) is list:
-                minx = np.Inf
-                miny = np.Inf
-                maxx = -np.Inf
-                maxy = -np.Inf
+                minx = np.inf
+                miny = np.inf
+                maxx = -np.inf
+                maxy = -np.inf
 
                 for k in obj:
                     if type(k) is dict:
@@ -5653,7 +5678,11 @@ class CNCjob(Geometry):
                 elif -offset == ((c - a) / 2) or -offset == ((d - b) / 2):
                     offset_for_use = offset - 0.0000000001
 
-            for it in geometry.solid_geometry:
+            # Shapely 2.x: Multi* geometries are not directly iterable
+            solid_geo = geometry.solid_geometry
+            solid_geo_iter = solid_geo.geoms if hasattr(solid_geo, 'geoms') else \
+                [solid_geo] if not isinstance(solid_geo, (list, tuple)) else solid_geo
+            for it in solid_geo_iter:
                 # if the geometry is a closed shape then create a Polygon out of it
                 if isinstance(it, LineString):
                     c = it.coords
@@ -5705,7 +5734,7 @@ class CNCjob(Geometry):
         self.z_end = float(endz) if endz is not None else self.app.defaults["geometry_endz"]
 
         self.xy_end = endxy if endxy != '' and endxy else self.app.defaults["geometry_endxy"]
-        self.xy_end = re.sub('[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
+        self.xy_end = re.sub(r'[()\[\]]', '', str(self.xy_end)) if self.xy_end else None
 
         if self.xy_end is not None and self.xy_end != '':
             self.xy_end = [float(eval(a)) for a in self.xy_end.split(",")]
@@ -5725,7 +5754,7 @@ class CNCjob(Geometry):
             if toolchangexy == '':
                 self.xy_toolchange = None
             else:
-                self.xy_toolchange = re.sub('[()\[\]]', '', str(toolchangexy)) if self.xy_toolchange else None
+                self.xy_toolchange = re.sub(r'[()\[\]]', '', str(toolchangexy)) if self.xy_toolchange else None
 
                 if self.xy_toolchange and self.xy_toolchange != '':
                     self.xy_toolchange = [float(eval(a)) for a in self.xy_toolchange.split(",")]
@@ -7544,10 +7573,10 @@ class CNCjob(Geometry):
 
         def bounds_rec(obj):
             if type(obj) is list:
-                cminx = np.Inf
-                cminy = np.Inf
-                cmaxx = -np.Inf
-                cmaxy = -np.Inf
+                cminx = np.inf
+                cminy = np.inf
+                cmaxx = -np.inf
+                cmaxy = -np.inf
 
                 for k in obj:
                     if type(k) is dict:
@@ -7576,16 +7605,16 @@ class CNCjob(Geometry):
 
             bounds_coords = bounds_rec(self.solid_geometry)
         else:
-            minx = np.Inf
-            miny = np.Inf
-            maxx = -np.Inf
-            maxy = -np.Inf
+            minx = np.inf
+            miny = np.inf
+            maxx = -np.inf
+            maxy = -np.inf
             if self.cnc_tools:
                 for k, v in self.cnc_tools.items():
-                    minx = np.Inf
-                    miny = np.Inf
-                    maxx = -np.Inf
-                    maxy = -np.Inf
+                    minx = np.inf
+                    miny = np.inf
+                    maxx = -np.inf
+                    maxy = -np.inf
                     try:
                         for k in v['solid_geometry']:
                             minx_, miny_, maxx_, maxy_ = bounds_rec(k)
@@ -7602,10 +7631,10 @@ class CNCjob(Geometry):
 
             if self.exc_cnc_tools:
                 for k, v in self.exc_cnc_tools.items():
-                    minx = np.Inf
-                    miny = np.Inf
-                    maxx = -np.Inf
-                    maxy = -np.Inf
+                    minx = np.inf
+                    miny = np.inf
+                    maxx = -np.inf
+                    maxy = -np.inf
                     try:
                         for k in v['solid_geometry']:
                             minx_, miny_, maxx_, maxy_ = bounds_rec(k)
@@ -8042,10 +8071,10 @@ def get_bounds(geometry_list):
     :param geometry_list:   List of geometries for which to calculate the bounds limits
     :return:
     """
-    xmin = np.Inf
-    ymin = np.Inf
-    xmax = -np.Inf
-    ymax = -np.Inf
+    xmin = np.inf
+    ymin = np.inf
+    xmax = -np.inf
+    ymax = -np.inf
 
     for gs in geometry_list:
         try:
@@ -8499,6 +8528,10 @@ def dict2obj(d):
 
 
 def autolist(obj):
+    # Shapely 2.x: Multi* geometries are no longer iterable.
+    # Use .geoms to get sub-geometries.
+    if hasattr(obj, 'geoms'):
+        return list(obj.geoms)
     try:
         __ = iter(obj)
         return obj

@@ -915,8 +915,11 @@ class CNCJobObject(FlatCAMObj, CNCjob):
                 #     self.add_probing_shape(shape=sh, color=color, face_color=color, visible=True)
 
                 edge_color = "#000000FF"
+                # Shapely 2.x: Multi* geometries are not directly iterable
+                geom_iter = geometry.geoms if hasattr(geometry, 'geoms') else [geometry] \
+                    if not isinstance(geometry, (list, tuple)) else geometry
                 try:
-                    for sh in geometry:
+                    for sh in geom_iter:
                         if custom_color is None:
                             self.add_probing_shape(shape=sh, color=edge_color, face_color=random_color(), visible=True)
                         else:

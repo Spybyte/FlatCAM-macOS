@@ -1795,7 +1795,7 @@ class GeometryObject(FlatCAMObj, Geometry):
 
             def g2dxf(dxf_space, geo_obj):
                 if isinstance(geo_obj, MultiPolygon):
-                    for poly in geo_obj:
+                    for poly in geo_obj.geoms:
                         ext_points = list(poly.exterior.coords)
                         dxf_space.add_lwpolyline(ext_points)
                         for interior in poly.interiors:
@@ -1806,7 +1806,7 @@ class GeometryObject(FlatCAMObj, Geometry):
                     for interior in geo_obj.interiors:
                         dxf_space.add_lwpolyline(list(interior.coords))
                 if isinstance(geo_obj, MultiLineString):
-                    for line in geo_obj:
+                    for line in geo_obj.geoms:
                         dxf_space.add_lwpolyline(list(line.coords))
                 if isinstance(geo_obj, LineString) or isinstance(geo_obj, LinearRing):
                     dxf_space.add_lwpolyline(list(geo_obj.coords))
@@ -2478,7 +2478,7 @@ class GeometryObject(FlatCAMObj, Geometry):
 
         endxy = endxy if endxy else self.options["endxy"]
         if isinstance(endxy, str):
-            endxy = re.sub('[()\[\]]', '', endxy)
+            endxy = re.sub(r'[()\[\]]', '', endxy)
             if endxy and endxy != '':
                 endxy = [float(eval(a)) for a in endxy.split(",")]
 
@@ -2486,7 +2486,7 @@ class GeometryObject(FlatCAMObj, Geometry):
 
         toolchangexy = toolchangexy if toolchangexy else self.options["toolchangexy"]
         if isinstance(toolchangexy, str):
-            toolchangexy = re.sub('[()\[\]]', '', toolchangexy)
+            toolchangexy = re.sub(r'[()\[\]]', '', toolchangexy)
             if toolchangexy and toolchangexy != '':
                 toolchangexy = [float(eval(a)) for a in toolchangexy.split(",")]
 
@@ -3210,9 +3210,10 @@ class GeometryObject(FlatCAMObj, Geometry):
         if geo_final.solid_geometry is None:
             geo_final.solid_geometry = []
 
-        try:
-            __ = iter(geo_final.solid_geometry)
-        except TypeError:
+        # Shapely 2.x: Multi* geometries are not directly iterable, use .geoms
+        if hasattr(geo_final.solid_geometry, 'geoms'):
+            geo_final.solid_geometry = list(geo_final.solid_geometry.geoms)
+        elif not isinstance(geo_final.solid_geometry, (list, tuple)):
             geo_final.solid_geometry = [geo_final.solid_geometry]
 
         new_solid_geometry = []

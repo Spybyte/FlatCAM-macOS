@@ -7,8 +7,6 @@ from app_Main import App
 from appGUI import VisPyPatches
 
 from multiprocessing import freeze_support
-# import copyreg
-# import types
 
 if sys.platform == "win32":
     # cx_freeze 'module win32' workaround
