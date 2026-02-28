@@ -1,51 +1,26 @@
 #!/bin/sh -e
 
-# Ubuntu packages
+# Ubuntu system packages (C libraries and dev headers)
 
 sudo apt-get install -y \
 	libfreetype6 \
 	libfreetype6-dev \
 	libgeos-dev \
+	libgdal-dev \
 	libpng-dev \
 	libspatialindex-dev \
 	qt5-style-plugins \
 	python3-dev \
-	python3-gdal \
-	python3-pip \
 	python3-pyqt5 \
 	python3-pyqt5.qtopengl \
-	python3-simplejson \
 	python3-tk
 
 
-# Python packages
+# Install uv if not present
+if ! command -v uv > /dev/null 2>&1; then
+	echo "Installing uv package manager..."
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
 
-sudo -H python3 -m pip install --upgrade \
-	pip \
-	numpy \
-	shapely \
-	rtree \
-	tk \
-	lxml \
-	cycler \
-	python-dateutil \
-	kiwisolver \
-	dill \
-	vispy \
-	pyopengl \
-	setuptools \
-	svg.path \
-	ortools \
-	freetype-py \
-	fontTools \
-	rasterio \
-	ezdxf \
-	matplotlib \
-	qrcode \
-	pyqt5 \
-	reportlab \
-	svglib \
-	pyserial \
-	testresources
-
-sudo -H easy_install -U distribute
+# Sync Python dependencies via uv
+uv sync --extra optimization

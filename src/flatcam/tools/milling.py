@@ -1079,15 +1079,17 @@ class ToolMilling(AppTool, Excellon):
             # in case that the tool used has the same diameter with the hole, and since the maximum resolution
             # for FlatCAM is 6 decimals,
             # we add a tenth of the minimum value, meaning 0.0000001, which from our point of view is "almost zero"
-            for hole in self.drills:
-                if hole['tool'] in tools:
-                    buffer_value = self.tools[hole['tool']]["C"] / 2 - tooldia / 2
-                    if buffer_value == 0:
-                        geo_obj.solid_geometry.append(
-                            Point(hole['point']).buffer(0.0000001).exterior)
-                    else:
-                        geo_obj.solid_geometry.append(
-                            Point(hole['point']).buffer(buffer_value).exterior)
+            for tool_nr, tool_data in self.tools.items():
+                if tool_nr in tools and 'drills' in tool_data:
+                    tool_dia = float(tool_data.get('tooldia', 0))
+                    buffer_value = tool_dia / 2 - tooldia / 2
+                    for drill_pt in tool_data['drills']:
+                        if buffer_value == 0:
+                            geo_obj.solid_geometry.append(
+                                drill_pt.buffer(0.0000001).exterior)
+                        else:
+                            geo_obj.solid_geometry.append(
+                                drill_pt.buffer(buffer_value).exterior)
 
         if use_thread:
             def geo_thread(a_obj):
@@ -1183,27 +1185,21 @@ class ToolMilling(AppTool, Excellon):
             # in case that the tool used has the same diameter with the hole, and since the maximum resolution
             # for FlatCAM is 6 decimals,
             # we add a tenth of the minimum value, meaning 0.0000001, which from our point of view is "almost zero"
-            for slot in self.slots:
-                if slot['tool'] in tools:
+            for tool_nr, tool_data in self.tools.items():
+                if tool_nr in tools and 'slots' in tool_data:
                     toolstable_tool = float('%.*f' % (self.decimals, float(tooldia)))
-                    file_tool = float('%.*f' % (self.decimals, float(self.tools[tool]["C"])))
+                    file_tool = float('%.*f' % (self.decimals, float(tool_data.get('tooldia', 0))))
 
                     # I add the 0.0001 value to account for the rounding error in converting from IN to MM and reverse
                     # for the file_tool (tooldia actually)
                     buffer_value = float(file_tool / 2) - float(toolstable_tool / 2) + 0.0001
-                    if buffer_value == 0:
-                        start = slot['start']
-                        stop = slot['stop']
-
+                    for slot in tool_data['slots']:
+                        start, stop = slot[0], slot[1]
                         lines_string = LineString([start, stop])
-                        poly = lines_string.buffer(0.0000001, int(self.geo_steps_per_circle)).exterior
-                        geo_obj.solid_geometry.append(poly)
-                    else:
-                        start = slot['start']
-                        stop = slot['stop']
-
-                        lines_string = LineString([start, stop])
-                        poly = lines_string.buffer(buffer_value, int(self.geo_steps_per_circle)).exterior
+                        if buffer_value == 0:
+                            poly = lines_string.buffer(0.0000001, int(self.geo_steps_per_circle)).exterior
+                        else:
+                            poly = lines_string.buffer(buffer_value, int(self.geo_steps_per_circle)).exterior
                         geo_obj.solid_geometry.append(poly)
 
         if use_thread:

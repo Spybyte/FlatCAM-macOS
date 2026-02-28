@@ -13,7 +13,7 @@ if sys.platform == "win32":
     pass
 
 MIN_VERSION_MAJOR = 3
-MIN_VERSION_MINOR = 5
+MIN_VERSION_MINOR = 12
 
 
 def debug_trace():
@@ -31,7 +31,7 @@ def main():
 
     major_v = sys.version_info.major
     minor_v = sys.version_info.minor
-    # Supported Python version is >= 3.5
+    # Supported Python version is >= 3.12
     if major_v >= MIN_VERSION_MAJOR:
         if minor_v >= MIN_VERSION_MINOR:
             pass

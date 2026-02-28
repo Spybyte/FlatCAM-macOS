@@ -56,6 +56,11 @@ from flatcam.parsers.svg import *
 from flatcam.parsers.dxf import *
 
 if platform.architecture()[0] == '64bit':
+    # Force pure-Python protobuf implementation to avoid upb backend bug with
+    # SatParameters.clause_cleanup_ratio default value (ortools + protobuf 6.x)
+    import os as _os
+    _os.environ.setdefault('PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION', 'python')
+
     from ortools.constraint_solver import pywrapcp
     from ortools.constraint_solver import routing_enums_pb2
 
@@ -2895,10 +2900,19 @@ class CNCjob(Geometry):
 
     # Distance callback
     class CreateDistanceCallback(object):
-        """Create callback to calculate distances between points."""
+        """Create callback to calculate distances between points.
+
+        In ortools 9.x the transit callback MUST return integer values.
+        We scale Euclidean distances by 1e6 and truncate to int so the
+        solver works with integer arithmetic while preserving sub-micron
+        precision.
+        """
+
+        SCALE = 1_000_000  # µm precision for mm coordinates
 
         def __init__(self, locs, manager):
             self.manager = manager
+            # Pre-compute an integer distance matrix indexed by *node* id.
             self.matrix = {}
 
             if locs:
@@ -2914,15 +2928,23 @@ class CNCjob(Geometry):
                             y1 = locs[from_node][1]
                             x2 = locs[to_node][0]
                             y2 = locs[to_node][1]
-                            self.matrix[from_node][to_node] = distance_euclidian(x1, y1, x2, y2)
+                            self.matrix[from_node][to_node] = int(
+                                distance_euclidian(x1, y1, x2, y2) * self.SCALE)
 
-        # def Distance(self, from_node, to_node):
-        #     return int(self.matrix[from_node][to_node])
+                # Build a second matrix keyed by *routing index* so the
+                # hot-path callback never has to call IndexToNode (which
+                # has SWIG type-conversion issues on Python 3.14).
+                num_indices = manager.GetNumberOfIndices()
+                self._routing_matrix = [[0] * num_indices for _ in range(num_indices)]
+                for fi in range(num_indices):
+                    fn = manager.IndexToNode(fi)
+                    for ti in range(num_indices):
+                        tn = manager.IndexToNode(ti)
+                        self._routing_matrix[fi][ti] = self.matrix.get(fn, {}).get(tn, 0)
+
         def Distance(self, from_index, to_index):
-            # Convert from routing variable Index to distance matrix NodeIndex.
-            from_node = self.manager.IndexToNode(from_index)
-            to_node = self.manager.IndexToNode(to_index)
-            return self.matrix[from_node][to_node]
+            """Transit callback – receives routing indices, returns int."""
+            return self._routing_matrix[from_index][to_index]
 
     @staticmethod
     def create_tool_data_array(points):
@@ -2986,7 +3008,7 @@ class CNCjob(Geometry):
                     # graceful abort requested by the user
                     raise grace
 
-                optimized_path.append(node)
+                optimized_path.append(manager.IndexToNode(int(node)))
                 node = assignment.Value(routing.NextVar(node))
         else:
             log.warning('OR-tools metaheuristics - No solution found.')
@@ -3038,7 +3060,7 @@ class CNCjob(Geometry):
             start_node = node
 
             while not routing.IsEnd(node):
-                optimized_path.append(node)
+                optimized_path.append(manager.IndexToNode(int(node)))
                 node = assignment.Value(routing.NextVar(node))
         else:
             log.warning('No solution found.')

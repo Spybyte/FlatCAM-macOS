@@ -14,27 +14,28 @@ G-Code for isolation routing, drilling, copper thieving, and more.
 
 ## Quick Start
 
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
+
 ```bash
 # Clone & enter the repo
 git clone <repo-url> && cd FlatCAM-OSX
 
-# Create a virtual environment (recommended)
-python3 -m venv .venv && source .venv/bin/activate
+# Install dependencies & create virtualenv (uv handles both)
+uv sync
 
-# Install dependencies
-pip install -r requirements.txt
+# Include optional OR-Tools optimization support
+uv sync --extra optimization
 
 # Run
-python -m flatcam          # preferred
+uv run flatcam             # preferred
 # or
-python FlatCAM.py          # backward-compatible shim
+make run                   # via Makefile
 ```
 
-For development (editable install):
+For development (editable install is the default with `uv sync`).
 
-```bash
-pip install -e .
-```
+> **Legacy alternative:** `pip install -r requirements.txt` and `python -m flatcam`
+> still work but are no longer the recommended workflow.
 
 ---
 
@@ -77,9 +78,10 @@ src/flatcam/
 
 ## Requirements
 
-- **Python** >= 3.9 (tested with 3.12)
+- **Python** >= 3.12 (tested with 3.14)
+- **[uv](https://docs.astral.sh/uv/)** >= 0.10 (package manager)
 - **PyQt5**
-- All other dependencies are listed in `requirements.txt`
+- All dependencies are declared in `pyproject.toml` and locked in `uv.lock`
 
 ---
 
@@ -92,71 +94,62 @@ src/flatcam/
 xcode-select --install
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Python and PyQt5
-brew install python@3.12 pyqt@5
+# Install uv
+brew install uv
 
 # Clone the repository
 git clone <repo-url> && cd FlatCAM-OSX
 
-# Set up a virtual environment
-python3 -m venv .venv && source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (creates .venv automatically)
+uv sync --extra optimization
 
 # Run FlatCAM
-python -m flatcam
+uv run flatcam
 ```
 
 ### Linux (Ubuntu / Debian)
 
 ```bash
-# Make sure Python 3 and pip are installed
-sudo apt-get update
-sudo apt-get install python3 python3-pip python3-venv
-
-# Clone the repository
+# Option A – use the setup script (installs uv + system deps automatically)
 git clone <repo-url> && cd FlatCAM-OSX
-
-# Option A – use the setup script
 chmod +x setup_ubuntu.sh
 ./setup_ubuntu.sh
 
-# Option B – manual venv setup
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+# Option B – manual setup
+sudo apt-get update
+sudo apt-get install python3 python3-venv libgdal-dev
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Run FlatCAM
-python3 -m flatcam
+git clone <repo-url> && cd FlatCAM-OSX
+uv sync --extra optimization
+uv run flatcam
 ```
 
-Alternatively, using `make`:
+Useful Makefile targets:
 
 ```bash
-make install_dependencies   # optional, if system deps are missing
-make install                # user-local install
-sudo make install           # system-wide install
+make sync                   # uv sync (core deps only)
+make sync-all               # uv sync --extra optimization
+make run                    # uv run flatcam
+make test                   # uv run pytest tests/
+make lock                   # uv lock (regenerate lockfile)
 ```
 
 ### Windows
 
 ```powershell
-# Install Python 3.12+ from https://www.python.org/downloads/
-# Make sure "Add Python to PATH" is checked during installation.
+# Install uv (https://docs.astral.sh/uv/getting-started/installation/)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 # Clone the repository
 git clone <repo-url>
 cd FlatCAM-OSX
 
-# Create a virtual environment
-python -m venv .venv
-.venv\Scripts\activate
-
 # Install dependencies
-pip install -r requirements.txt
+uv sync --extra optimization
 
 # Run FlatCAM
-python -m flatcam
+uv run flatcam
 ```
 
 ---

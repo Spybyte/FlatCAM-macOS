@@ -1,9 +1,25 @@
 
 # Install on Ubuntu(-like) systems
 
-# Install dependencies system-wide (including python modules)
+# Install system-level dependencies (C libs, etc.)
 install_dependencies:
 	sudo -H ./setup_ubuntu.sh
+
+# uv-based development targets
+sync:
+	uv sync
+
+sync-all:
+	uv sync --extra optimization
+
+run:
+	uv run flatcam
+
+lock:
+	uv lock
+
+test:
+	uv run pytest tests/
 
 USER_ID = $(shell id -u)
 
@@ -14,7 +30,7 @@ ASSEST_PATH = assets/linux
 INSTALL_PATH = /usr/share/flatcam-beta
 APPS_PATH = /usr/share/applications
 
-MIN_PY3_MINOR_VERSION := 5
+MIN_PY3_MINOR_VERSION := 12
 PY3_MINOR_VERSION := $(shell python3 --version | cut -d'.' -f2)
 
 ifneq ($(MIN_PY3_MINOR_VERSION), $(firstword $(sort $(PY3_MINOR_VERSION) $(MIN_PY3_MINOR_VERSION))))

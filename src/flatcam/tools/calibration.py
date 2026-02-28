@@ -679,10 +679,8 @@ class ToolCalibration(AppTool):
         def initialize_excellon(obj_init, app_obj):
             obj_init.tools = deepcopy(obj.tools)
 
-            # drills are offset, so they need to be deep copied
-            obj_init.drills = deepcopy(obj.drills)
-            # slots are offset, so they need to be deep copied
-            obj_init.slots = deepcopy(obj.slots)
+            # drills and slots are stored per-tool inside obj.tools,
+            # so deepcopy(obj.tools) already covers them.
 
             obj_init.scale(xfactor=scalex, yfactor=scaley, point=(origin_x, origin_y))
             obj_init.skew(angle_x=skewx, angle_y=skewy, point=(origin_x, origin_y))

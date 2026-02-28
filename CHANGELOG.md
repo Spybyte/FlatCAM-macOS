@@ -9,6 +9,27 @@ CHANGELOG for FlatCAM beta
 
 28.02.2026
 
+- Migrated package management from pip/requirements.txt to uv (https://docs.astral.sh/uv/)
+- Added .python-version file pinning Python 3.14
+- Rewrote pyproject.toml: 19 runtime dependencies with major-version pins, dynamic version from __version__, entry point `flatcam`, optional `optimization` extra for ortools
+- Removed transitive-only dependencies (cycler, python-dateutil, kiwisolver, six) and never-imported gdal from dependency list
+- Added uv.lock for reproducible builds (53 resolved packages)
+- Added .venv/ to .gitignore
+- Makefile: added `sync`, `sync-all`, `run`, `lock`, `test` targets; bumped MIN_PY3_MINOR_VERSION to 12
+- setup_ubuntu.sh: replaced pip install with uv auto-install and `uv sync`
+- Updated __main__.py minimum Python version check to 3.12
+- Updated FlatCAM.py docstring to reference `uv run flatcam`
+- Upgraded Shapely from >=1.8,<2 to >=2,<3 (Shapely 1.x incompatible with Python 3.14 — pkgutil.ImpImporter removed)
+- Fixed ortools 9.x compatibility: CreateDistanceCallback now returns integer distances (scaled ×1e6) and uses a pre-computed routing-index matrix to avoid SWIG IndexToNode issues on Python 3.14
+- Added PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python environment variable workaround for protobuf upb backend incompatibility with ortools 9.x
+- Fixed SyntaxWarnings for invalid escape sequences in gui/elements.py (4 occurrences) and tools/drilling.py (1 occurrence) by converting to raw strings
+- Fixed pre-existing ExcellonObject.drills/slots AttributeError: removed orphaned references to self.drills/self.slots (removed in 2020 data structure migration but not all callers were updated)
+  - app.py: removed redundant deepcopy of drills/slots (already included in tools deepcopy)
+  - tools/calibration.py: same fix
+  - editors/excellon_editor.py: removed dead drills/slots assignment
+  - tools/extract_drills.py: removed dead drills assignment
+  - tools/milling.py: rewrote drill/slot milling to iterate self.tools[tool_nr]['drills'/'slots'] with correct 'tooldia' key
+
 - Major project restructuring: moved all Python source files into a proper package layout under src/flatcam/
 - New package structure with snake_case module naming:
   - src/flatcam/core/ — common utilities, worker, pool, database, preprocessor base, translation

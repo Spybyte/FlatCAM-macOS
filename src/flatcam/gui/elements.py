@@ -754,7 +754,7 @@ class NumericalEvalEntry(FCEntry):
     def __init__(self, border_color=None):
         super().__init__(border_color=border_color)
 
-        regex = QtCore.QRegExp("[0-9\/\*\+\-\%\.\,\s]*")
+        regex = QtCore.QRegExp(r"[0-9/\*\+\-\%\.\,\s]*")
         validator = QtGui.QRegExpValidator(regex, self)
         self.setValidator(validator)
 
@@ -778,7 +778,7 @@ class NumericalEvalTupleEntry(EvalEntry):
     def __init__(self, border_color=None):
         super().__init__(border_color=border_color)
 
-        regex = QtCore.QRegExp("[0-9\/\*\+\-\%\.\s\,\[\]\(\)]*")
+        regex = QtCore.QRegExp(r"[0-9/\*\+\-\%\.\s\,\[\]\(\)]*")
         validator = QtGui.QRegExpValidator(regex, self)
         self.setValidator(validator)
 
@@ -1298,7 +1298,7 @@ class FCDoubleSpinner(QtWidgets.QDoubleSpinBox):
         # by default don't allow the minus sign to be entered as the default for QDoubleSpinBox is the positive range
         # between 0.00 and 99.00 (2 decimals)
         self.lineEdit().setValidator(
-            QtGui.QRegExpValidator(QtCore.QRegExp("\+?[0-9]*[.,]?[0-9]{%d}" % self.decimals()), self))
+            QtGui.QRegExpValidator(QtCore.QRegExp(r"\+?[0-9]*[.,]?[0-9]{%d}" % self.decimals()), self))
 
         if suffix:
             self.setSuffix(' %s' % str(suffix))
@@ -1490,7 +1490,7 @@ class FCDoubleSpinner(QtWidgets.QDoubleSpinBox):
                 QtGui.QRegExpValidator(QtCore.QRegExp("-?[0-9]*[.,]?[0-9]{%d}" % self.decimals()), self))
         else:
             self.lineEdit().setValidator(
-                QtGui.QRegExpValidator(QtCore.QRegExp("\+?[0-9]*[.,]?[0-9]{%d}" % self.decimals()), self))
+                QtGui.QRegExpValidator(QtCore.QRegExp(r"\+?[0-9]*[.,]?[0-9]{%d}" % self.decimals()), self))
 
     def set_range(self, min_val, max_val):
         if min_val < 0 or max_val <= 0:

@@ -5305,10 +5305,8 @@ class App(QtCore.QObject):
 
             obj_init.tools = deepcopy(obj.tools)
 
-            # drills are offset, so they need to be deep copied
-            obj_init.drills = deepcopy(obj.drills)
-            # slots are offset, so they need to be deep copied
-            obj_init.slots = deepcopy(obj.slots)
+            # drills and slots are stored per-tool inside obj.tools,
+            # so deepcopy(obj.tools) already covers them.
             obj_init.create_geometry()
 
             if not obj_init.tools:
@@ -5368,10 +5366,8 @@ class App(QtCore.QObject):
 
         def initialize_excellon(obj_init, app_obj):
             obj_init.tools = deepcopy(obj.tools)
-            # drills are offset, so they need to be deep copied
-            obj_init.drills = deepcopy(obj.drills)
-            # slots are offset, so they need to be deep copied
-            obj_init.slots = deepcopy(obj.slots)
+            # drills and slots are stored per-tool inside obj.tools,
+            # so deepcopy(obj.tools) already covers them.
             obj_init.create_geometry()
             if not obj_init.tools:
                 app_obj.debug("on_copy_object2() --> no excellon tools")

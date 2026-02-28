@@ -1,7 +1,10 @@
 """
-FlatCAM entry point shim.
+FlatCAM entry point shim (legacy).
 Adds src/ to sys.path and delegates to flatcam.__main__.main().
-Use `python -m flatcam` (with PYTHONPATH=src or pip install -e .) as the preferred way to run.
+
+Preferred way to run:
+    uv run flatcam
+    uv run python -m flatcam
 """
 import sys
 import os

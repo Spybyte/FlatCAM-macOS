@@ -3058,9 +3058,9 @@ class AppExcEditor(QtCore.QObject):
         # How the object should be initialized
         def obj_init(excellon_obj, app_obj):
 
-            excellon_obj.drills = deepcopy(new_drills)
+            # drills and slots are stored per-tool inside new_tools,
+            # no separate top-level drills/slots attributes needed.
             excellon_obj.tools = deepcopy(new_tools)
-            excellon_obj.slots = deepcopy(new_slots)
 
             excellon_obj.options['name'] = outname
 

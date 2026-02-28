@@ -371,7 +371,7 @@ class ToolExtractDrills(AppTool):
 
         def obj_init(obj_inst, app_inst):
             obj_inst.tools = tools
-            obj_inst.drills = drills
+            # drills are stored per-tool inside tools[nr]['drills']
             obj_inst.create_geometry()
             obj_inst.source_file = app_inst.f_handlers.export_excellon(obj_name=outname, local_use=obj_inst,
                                                                        filename=None,

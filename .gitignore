@@ -5,3 +5,4 @@ tests/tmp/
 build/
 .mypy_cache/
 src/*.egg-info/
+.venv/
