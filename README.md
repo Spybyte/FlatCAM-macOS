@@ -2,7 +2,7 @@
 
 **2D Computer-Aided PCB Manufacturing**
 
-> macOS-focused fork by Björn Bubbat (2016), based on
+> macOS-focused fork by Björn Bubbat (2026), based on
 > [FlatCAM BETA](https://bitbucket.org/jpcgt/flatcam) by Marius Stanciu (2019)
 > and the original [FlatCAM](http://flatcam.org/) by Juan Pablo Caram (2014–2016).
 

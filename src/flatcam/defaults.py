@@ -24,7 +24,7 @@ class FlatCAMDefaults:
 
     factory_defaults = {
         # Global
-        "version": 8.992,  # defaults format version, not necessarily equal to app version
+        "version": "8.994",  # defaults format version, not necessarily equal to app version
         "first_run": True,
         "root_folder_path": '',
         "global_serial": 0,
@@ -808,7 +808,7 @@ class FlatCAMDefaults:
         except Exception as e:
             log.error("save_factory_defaults() -> %s" % str(e))
 
-    def __init__(self, callback=lambda x: None, beta=True, version=8.9):
+    def __init__(self, callback=lambda x: None, beta=True, version="8.9"):
         """
 
         :param callback:    A method called each time that one of the values are changed in the self.defaults LouDict

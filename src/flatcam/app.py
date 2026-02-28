@@ -7,6 +7,7 @@
 # Modified by Marius Stanciu (2019)                         #
 # ###########################################################
 
+import re
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -91,6 +92,7 @@ from flatcam.core.preprocessor import load_preprocessors
 
 # Project root (where assets/, config/, locale/ live)
 from flatcam import PROJECT_ROOT as _PROJECT_ROOT
+from flatcam import __version__
 
 # FlatCAM appEditors
 from flatcam.editors.geo_editor import AppGeoEditor
@@ -179,7 +181,7 @@ class App(QtCore.QObject):
     # ################################### Version and VERSION DATE ##################################################
     # ###############################################################################################################
     # version = "Unstable Version"
-    version = 8.994
+    version = __version__
     version_date = "2026/02/28"
     beta = True
 
@@ -7671,7 +7673,7 @@ class App(QtCore.QObject):
         f.close()
 
         # ## Latest version?
-        if self.version >= data["version"]:
+        if self._version_tuple(self.version) >= self._version_tuple(data["version"]):
             self.log.debug("FlatCAM is up to date!")
             self.inform.emit('[success] %s' % _("FlatCAM is up to date!"))
             return
@@ -8192,6 +8194,11 @@ class App(QtCore.QObject):
                 self.shell.append_output(msg + end)
         except AttributeError:
             self.log.debug("shell_message() is called before Shell Class is instantiated. The message is: %s", str(msg))
+
+    @staticmethod
+    def _version_tuple(v):
+        """Convert a version string like '8.994m1' into a tuple of ints for comparison."""
+        return tuple(int(x) for x in re.findall(r'\d+', str(v)))
 
     def dec_format(self, val, dec=None):
         """
