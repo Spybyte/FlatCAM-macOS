@@ -23,7 +23,7 @@ FlatCAM is a PyQt5 desktop application for PCB manufacturing post-processing. Al
 uv sync                          # install core deps
 uv sync --extra optimization     # include ortools
 uv run flatcam                   # run the app
-uv run pytest tests/             # run tests
+make test                        # run tests (headless Qt)
 make bundle                      # build macOS .app (py2app)
 make bundle-alias                # fast dev build (symlinks)
 ```
@@ -42,10 +42,24 @@ make bundle-alias                # fast dev build (symlinks)
 - **Logging** — Use `log = logging.getLogger('base')` (single logger name throughout the codebase).
 - **Imports** — Always use fully-qualified package imports: `from flatcam.gui.elements import FCButton`, never relative imports.
 - **`self.app` pattern** — Tools, objects, and editors always receive `app` in their constructor and store it as `self.app`. Access defaults via `self.app.defaults["key"]`, decimal precision via `self.app.decimals`.
+- **App constructor** — `App(qapp, user_defaults=True)` requires a `QApplication` instance as the first argument.
 - **Single version source** — Version lives in `src/flatcam/__init__.py::__version__`. Both `pyproject.toml` and `setup.py` (py2app plist) read it dynamically.
 - **`PROJECT_ROOT`** — Canonical path anchor from `flatcam.__init__.PROJECT_ROOT`. Handles both source runs and frozen py2app bundles.
 - **macOS multiprocessing** — `set_start_method('fork')` is forced in `app.py` (required for PyQt5 on macOS 3.8+).
 - **Preprocessor registration** — Subclass `PreProc` (from `core/preprocessor.py`) → automatically registered in the global `preprocessors` dict via metaclass. When frozen (py2app), loading uses `pkgutil.walk_packages` instead of `glob`.
+
+## Testing
+
+Tests live in `tests/` and are split into two categories:
+
+- **Unit tests** (run without GUI): `test_excellon.py`, `test_paint.py`, `test_pathconnect.py`, `test_gerber_buffer.py`, `test_voronoi.py`, `other/test_fcrts.py`. These use a mock app from `tests/conftest.py` — no PyQt5 `QApplication` needed.
+- **Integration tests** (require full `App`): `test_*_flow.py`, `test_polygon_paint.py`, `test_tcl_shell.py`. These are skipped by default (`@pytest.mark.skip`) because they need a working Qt display. Run with `QT_QPA_PLATFORM=offscreen` (the `make test` target sets this).
+
+**`tests/test_tclCommands/`** contains helper functions (with `self` parameter) designed to be called as methods from `TclShellTest`, not as standalone tests. They are excluded from collection via `tests/test_tclCommands/conftest.py`.
+
+**Mock app pattern** — `tests/conftest.py` provides an autouse `_set_mock_app` fixture that patches `FlatCAMObj.app`, `Geometry.app`, and `Gerber.app` (which has its own `app = None` class attribute that shadows `Geometry.app` in the MRO). This lets parser/geometry classes be instantiated in isolation.
+
+**Key data model note** — Excellon drill data is per-tool: `excellon.tools[tool_num]['drills']` is a list of Shapely `Point` objects. There is no top-level `excellon.drills` list.
 
 ## Adding New Components
 
@@ -55,7 +69,7 @@ make bundle-alias                # fast dev build (symlinks)
 
 ## Geometry & Dependencies
 
-- All 2D geometry uses **Shapely 2.x** (`Polygon`, `MultiPolygon`, `LineString`, `unary_union`).
+- All 2D geometry uses **Shapely 2.x** (`Polygon`, `MultiPolygon`, `LineString`, `unary_union`). Use `len(geom.geoms)` not `len(geom)` for multi-geometries.
 - Spatial indexing via **Rtree**. Raster operations via **rasterio**.
 - DXF via **ezdxf**, SVG via **svg.path** + **svglib**, G-Code via custom preprocessor templates.
 - Optional: **ortools** for toolpath optimization (install via `uv sync --extra optimization`).
