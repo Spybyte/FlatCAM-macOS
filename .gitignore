@@ -8,3 +8,4 @@ src/*.egg-info/
 .venv/
 dist/
 build/
+.DS_Store
