@@ -3882,11 +3882,16 @@ class MainGUI(QtWidgets.QMainWindow):
         if self.app.save_in_progress:
             self.app.inform.emit('[WARNING_NOTCL] %s' % _("Application is saving the project. Please wait ..."))
         else:
+            # Use pos() for x/y (frame top-left) and geometry() for width/height (content size).
+            # geometry() returns the content-area origin (below the title bar), but move() positions
+            # the frame origin — mixing them causes the window to drift down by the title-bar
+            # height on every restart (macOS).
+            fpos = self.pos()
             grect = self.geometry()
 
             # self.splitter.sizes()[0] is actually the size of the "notebook"
             if not self.isMaximized():
-                self.geom_update.emit(grect.x(), grect.y(), grect.width(), grect.height(), self.splitter.sizes()[0])
+                self.geom_update.emit(fpos.x(), fpos.y(), grect.width(), grect.height(), self.splitter.sizes()[0])
 
             self.final_save.emit()
         event.ignore()

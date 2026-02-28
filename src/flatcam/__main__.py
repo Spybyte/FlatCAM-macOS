@@ -76,7 +76,7 @@ def main():
         style = settings.value('style', type=str)
         app.setStyle(style)
 
-    fc = App(qapp=app)
+    _fc = App(qapp=app)
     sys.exit(app.exec_())
 
 
