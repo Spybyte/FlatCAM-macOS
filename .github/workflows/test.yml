@@ -43,6 +43,8 @@ jobs:
             libegl1 \
             libgl1 \
             libspatialindex-dev \
+            libxml2-dev \
+            libxslt-dev \
             xvfb
 
       - name: Install project dependencies
