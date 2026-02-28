@@ -1,4 +1,4 @@
-from FlatCAMObj import FlatCAMObj
+from flatcam.objects.base import FlatCAMObj
 from .test_TclCommandOpenExcellon import *
 
 

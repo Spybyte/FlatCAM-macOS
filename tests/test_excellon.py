@@ -1,6 +1,6 @@
 import unittest
-from flatcamParsers.ParseExcellon import Excellon
-from flatcamParsers.ParseGerber import Gerber
+from flatcam.parsers.excellon import Excellon
+from flatcam.parsers.gerber import Gerber
 
 
 class ExcellonNumberParseTestInch(unittest.TestCase):
@@ -16,40 +16,46 @@ class ExcellonNumberParseTestInch(unittest.TestCase):
     # all zeros to the left of the number. The CNC-7 will count the number
     # of digits you typed and automatically fill in the missing zeros.
 
-    def test_inch_leading_6digit(self):
+    def _make_excellon(self):
+        """Create an Excellon parser configured for inches."""
         excellon = Excellon()
+        excellon.units = "in"
+        return excellon
+
+    def test_inch_leading_6digit(self):
+        excellon = self._make_excellon()
         self.assertEqual(excellon.zeros, "L")
         self.assertEqual(excellon.parse_number("123456"), 12.3456)
 
     def test_inch_leading_5digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         self.assertEqual(excellon.parse_number("12345"), 12.345)
 
     def test_inch_leading_15digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         self.assertEqual(excellon.parse_number("012345"), 1.2345)
 
     def test_inch_leading_51digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         self.assertEqual(excellon.parse_number("123450"), 12.345)
 
     def test_inch_trailing_6digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         excellon.zeros = "T"
         self.assertEqual(excellon.parse_number("123456"), 12.3456)
 
     def test_inch_trailing_5digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         excellon.zeros = "T"
         self.assertEqual(excellon.parse_number("12345"), 1.2345)
 
     def test_inch_trailing_15digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         excellon.zeros = "T"
         self.assertEqual(excellon.parse_number("012345"), 1.2345)
 
     def test_inch_trailing_51digit(self):
-        excellon = Excellon()
+        excellon = self._make_excellon()
         excellon.zeros = "T"
         self.assertEqual(excellon.parse_number("123450"), 12.345)
 
@@ -135,8 +141,9 @@ class ExcellonFormatM72Test(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (90.0, 11.75))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (30.25, 10.5))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (90.0, 11.75))
+        self.assertEqual(drills[1].coords[0], (30.25, 10.5))
 
 
 class ExcellonFormatM71Test(unittest.TestCase):
@@ -162,8 +169,9 @@ class ExcellonFormatM71Test(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (900.0, 117.5))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (302.5, 105.0))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (900.0, 117.5))
+        self.assertEqual(drills[1].coords[0], (302.5, 105.0))
 
 
 class ExcellonFormatINCHLZTest(unittest.TestCase):
@@ -189,8 +197,9 @@ class ExcellonFormatINCHLZTest(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (90.0, 11.75))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (30.25, 10.5))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (90.0, 11.75))
+        self.assertEqual(drills[1].coords[0], (30.25, 10.5))
 
 
 class ExcellonFormatINCHTest(unittest.TestCase):
@@ -216,8 +225,9 @@ class ExcellonFormatINCHTest(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (90.0, 11.75))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (30.25, 10.5))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (90.0, 11.75))
+        self.assertEqual(drills[1].coords[0], (30.25, 10.5))
 
 
 class ExcellonFormatINCHTZTest(unittest.TestCase):
@@ -243,8 +253,9 @@ class ExcellonFormatINCHTZTest(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (0.9, 1.175))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (3.025, 1.05))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (0.9, 1.175))
+        self.assertEqual(drills[1].coords[0], (3.025, 1.05))
 
 
 class ExcellonFormatMETRICLZTest(unittest.TestCase):
@@ -270,8 +281,9 @@ class ExcellonFormatMETRICLZTest(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (900.0, 117.5))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (302.5, 105.0))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (900.0, 117.5))
+        self.assertEqual(drills[1].coords[0], (302.5, 105.0))
 
 
 class ExcellonFormatMETRICTest(unittest.TestCase):
@@ -297,8 +309,9 @@ class ExcellonFormatMETRICTest(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (900.0, 117.5))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (302.5, 105.0))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (900.0, 117.5))
+        self.assertEqual(drills[1].coords[0], (302.5, 105.0))
 
 
 class ExcellonFormatMETRICTZTest(unittest.TestCase):
@@ -324,8 +337,9 @@ class ExcellonFormatMETRICTZTest(unittest.TestCase):
 
     def test_coords(self):
         # For X9000 add the missing 00 on the right. Then divide by 10000.
-        self.assertEqual(self.excellon.drills[0]["point"].coords[0], (9.0, 11.75))
-        self.assertEqual(self.excellon.drills[1]["point"].coords[0], (30.25, 10.5))
+        drills = self.excellon.tools[1]['drills']
+        self.assertEqual(drills[0].coords[0], (9.0, 11.75))
+        self.assertEqual(drills[1].coords[0], (30.25, 10.5))
 
 if __name__ == '__main__':
     unittest.main()

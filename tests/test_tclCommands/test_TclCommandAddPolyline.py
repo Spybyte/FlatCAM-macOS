@@ -1,4 +1,4 @@
-from FlatCAMObj import FlatCAMGeometry
+from flatcam.objects.geometry import GeometryObject as FlatCAMGeometry
 
 
 def test_add_polyline(self):

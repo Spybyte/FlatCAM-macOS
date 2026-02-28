@@ -1,4 +1,5 @@
-from FlatCAMObj import FlatCAMGerber, FlatCAMGeometry
+from flatcam.objects.gerber import GerberObject as FlatCAMGerber
+from flatcam.objects.geometry import GeometryObject as FlatCAMGeometry
 
 
 def test_interiors(self):

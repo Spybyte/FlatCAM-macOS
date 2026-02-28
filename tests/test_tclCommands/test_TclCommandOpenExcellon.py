@@ -1,4 +1,4 @@
-from FlatCAMObj import FlatCAMExcellon
+from flatcam.objects.excellon import ExcellonObject as FlatCAMExcellon
 
 
 def test_open_excellon(self):

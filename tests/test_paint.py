@@ -87,7 +87,7 @@ class PaintConnectTest(PaintTestCase):
         tooldia = 1.0
 
         print("--")
-        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia)
+        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia, 64)
 
         result = list(result.get_objects())
         for r in result:
@@ -109,7 +109,7 @@ class PaintConnectTest(PaintTestCase):
         tooldia = 1.0
 
         print("--")
-        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia)
+        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia, 64)
 
         result = list(result.get_objects())
         for r in result:
@@ -131,7 +131,7 @@ class PaintConnectTest(PaintTestCase):
         tooldia = 1.1
 
         print("--")
-        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia)
+        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia, 64)
 
         result = list(result.get_objects())
         for r in result:
@@ -165,7 +165,7 @@ class PaintConnectTest2(PaintTestCase):
         tooldia = 1.0
 
         print("--")
-        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia)
+        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia, 64)
 
         result = list(result.get_objects())
         for r in result:
@@ -198,7 +198,7 @@ class PaintConnectTest3(PaintTestCase):
         tooldia = 1.0
 
         print("--")
-        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia)
+        result = Geometry.paint_connect(mkstorage(deepcopy(paths)), self.boundary, tooldia, 64)
 
         result = list(result.get_objects())
         for r in result:

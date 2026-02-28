@@ -1,6 +1,6 @@
 import unittest
 import flatcam.cam.camlib as camlib
-from flatcamParsers.ParseGerber import Gerber
+from flatcam.parsers.gerber import Gerber
 
 
 class GerberBuffer(unittest.TestCase):

@@ -1,4 +1,6 @@
-from FlatCAMObj import FlatCAMGerber, FlatCAMGeometry, FlatCAMObj
+from flatcam.objects.gerber import GerberObject as FlatCAMGerber
+from flatcam.objects.geometry import GeometryObject as FlatCAMGeometry
+from flatcam.objects.base import FlatCAMObj
 from .test_TclCommandIsolate import *
 
 def test_cncjob(self):

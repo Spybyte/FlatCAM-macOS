@@ -65,7 +65,13 @@ lock:
 	uv lock
 
 test:
-	uv run pytest tests/
+	QT_QPA_PLATFORM=offscreen uv run pytest tests/
+
+# Install system dependencies for macOS
+setup-macos:
+	brew install geos spatialindex freetype libpng
+	@echo ""
+	@echo "System dependencies installed. Run 'make install' next."
 
 USER_ID = $(shell id -u)
 

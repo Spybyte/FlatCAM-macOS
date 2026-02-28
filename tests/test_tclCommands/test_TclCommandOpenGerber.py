@@ -1,4 +1,4 @@
-from FlatCAMObj import FlatCAMGerber
+from flatcam.objects.gerber import GerberObject as FlatCAMGerber
 
 
 def test_open_gerber(self):
