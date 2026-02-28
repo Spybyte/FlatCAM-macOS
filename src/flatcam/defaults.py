@@ -119,7 +119,7 @@ class FlatCAMDefaults:
         "global_alt_sel_line": '#006E20BF',
         "global_draw_color": '#FF0000',
         "global_sel_draw_color": '#0000FF',
-        "global_proj_item_color": '#000000',
+        "global_proj_item_color": '#d4d4d4',
         "global_proj_item_dis_color": '#b7b7cb',
         "global_project_autohide": True,
 
