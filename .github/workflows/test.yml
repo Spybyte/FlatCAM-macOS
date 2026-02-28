@@ -48,7 +48,7 @@ jobs:
             xvfb
 
       - name: Install project dependencies
-        run: uv sync --locked --dev
+        run: uv sync --locked --dev --extra optimization
 
       - name: Run tests
         env:

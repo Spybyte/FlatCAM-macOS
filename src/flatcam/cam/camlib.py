@@ -61,8 +61,14 @@ if platform.architecture()[0] == '64bit':
     import os as _os
     _os.environ.setdefault('PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION', 'python')
 
-    from ortools.constraint_solver import pywrapcp
-    from ortools.constraint_solver import routing_enums_pb2
+    try:
+        from ortools.constraint_solver import pywrapcp
+        from ortools.constraint_solver import routing_enums_pb2
+        HAS_ORTOOLS = True
+    except ImportError:
+        HAS_ORTOOLS = False
+else:
+    HAS_ORTOOLS = False
 
 import logging
 
@@ -2952,6 +2958,12 @@ class CNCjob(Geometry):
         return [(pt.coords.xy[0][0], pt.coords.xy[1][0]) for pt in points]
 
     def optimized_ortools_meta(self, locations, start=None, opt_time=0):
+        if not HAS_ORTOOLS:
+            raise ModuleNotFoundError(
+                "ortools is required for this optimization method. "
+                "Install it with: uv sync --extra optimization"
+            )
+
         optimized_path = []
 
         tsp_size = len(locations)
@@ -3017,6 +3029,12 @@ class CNCjob(Geometry):
         # ############################################# ##
 
     def optimized_ortools_basic(self, locations, start=None):
+        if not HAS_ORTOOLS:
+            raise ModuleNotFoundError(
+                "ortools is required for this optimization method. "
+                "Install it with: uv sync --extra optimization"
+            )
+
         optimized_path = []
 
         tsp_size = len(locations)
