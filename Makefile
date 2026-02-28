@@ -5,20 +5,23 @@
 install_dependencies:
 	sudo -H ./setup_ubuntu.sh
 
-bundle-icon:
+ICON_SRC := assets/resources/flatcam_icon256.png
+ICON_DST := assets/resources/FlatCAM.icns
+
+# Rebuild .icns only when the source PNG changes
+$(ICON_DST): $(ICON_SRC)
 	rm -rf build/FlatCAM.iconset
 	mkdir -p build/FlatCAM.iconset
-	sips -z 16 16 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_16x16.png
-	sips -z 32 32 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_16x16@2x.png
-	sips -z 32 32 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_32x32.png
-	sips -z 64 64 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_32x32@2x.png
-	sips -z 128 128 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_128x128.png
-	sips -z 256 256 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_128x128@2x.png
-	sips -z 256 256 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_256x256.png
-	sips -z 512 512 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_256x256@2x.png
-	sips -z 512 512 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_512x512.png
-	sips -z 1024 1024 assets/resources/flatcam_icon256.png --out build/FlatCAM.iconset/icon_512x512@2x.png
-	iconutil -c icns build/FlatCAM.iconset -o assets/resources/FlatCAM.icns
+	@for pair in '16 16 icon_16x16' '32 32 icon_16x16@2x' '32 32 icon_32x32' \
+	             '64 64 icon_32x32@2x' '128 128 icon_128x128' '256 256 icon_128x128@2x' \
+	             '256 256 icon_256x256' '512 512 icon_256x256@2x' '512 512 icon_512x512' \
+	             '1024 1024 icon_512x512@2x'; do \
+		set -- $$pair; \
+		sips -z $$1 $$2 $(ICON_SRC) --out build/FlatCAM.iconset/$$3.png >/dev/null; \
+	done
+	iconutil -c icns build/FlatCAM.iconset -o $(ICON_DST)
+
+bundle-icon: $(ICON_DST)
 
 bundle-alias: bundle-icon
 	rm -rf build dist
@@ -30,23 +33,22 @@ bundle: bundle-icon
 	rm -rf build .dist_old
 	-mv dist .dist_old 2>/dev/null; rm -rf .dist_old &
 	uv run python setup.py py2app
-	@echo "Fixing bundled native libraries..."
-	@# py2app's macholib can corrupt code signatures when rewriting load paths.
-	@# Fix: replace corrupted dylibs with fresh copies, rewrite install names, re-sign.
-	@for lib in dist/FlatCAM.app/Contents/Frameworks/*.dylib; do \
+	@# Verify dylib signatures; repair any that macholib corrupted.
+	@bad=0; for lib in dist/FlatCAM.app/Contents/Frameworks/*.dylib; do \
 		if ! codesign -v "$$lib" 2>/dev/null; then \
+			bad=$$((bad+1)); \
 			name=$$(basename "$$lib"); \
 			src="/opt/homebrew/lib/$$name"; \
 			if [ -f "$$src" ]; then \
-				echo "  Replacing corrupted $$name with fresh copy from homebrew..."; \
 				cp "$$src" "$$lib"; \
 				install_name_tool -id "@executable_path/../Frameworks/$$name" "$$lib" 2>/dev/null; \
 			fi; \
-			codesign --force --sign - "$$lib" 2>/dev/null || echo "  WARNING: could not sign $$name"; \
+			codesign --force --sign - "$$lib" 2>/dev/null || echo "WARNING: could not sign $$name"; \
 		fi; \
-	done
-	@echo "Re-signing bundle..."
-	@codesign --force --deep --sign - dist/FlatCAM.app 2>/dev/null || true
+	done; \
+	if [ $$bad -gt 0 ]; then echo "Repaired $$bad corrupted dylib(s)"; \
+	else echo "All dylibs have valid signatures"; fi
+	codesign --force --deep --sign - dist/FlatCAM.app 2>/dev/null || true
 	@echo "Bundle created at dist/FlatCAM.app"
 
 # uv-based development targets

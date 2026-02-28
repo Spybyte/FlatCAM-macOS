@@ -3699,12 +3699,7 @@ class App(QtCore.QObject):
             # this won't work in Linux or MacOS
             return
 
-        # test if the app was frozen and choose the path for the configuration file
-        if getattr(sys, "frozen", False) is True:
-            current_data_path = os.path.join(str(_PROJECT_ROOT), 'config')
-        else:
-            current_data_path = os.path.join(str(_PROJECT_ROOT), 'config')
-
+        current_data_path = os.path.join(str(_PROJECT_ROOT), 'config')
         config_file = current_data_path + '\\configuration.txt'
         try:
             with open(config_file, 'r') as f:
@@ -9166,11 +9161,7 @@ class MenuFileHandlers(QtCore.QObject):
         _filter_ = "TCL script .FlatScript (*.FlatScript);;TCL script .tcl (*.TCL);;TCL script .txt (*.TXT);;" \
                    "All Files (*.*)"
 
-        # test if the app was frozen and choose the path for the configuration file
-        if getattr(sys, "frozen", False) is True:
-            example_path = os.path.join(str(_PROJECT_ROOT), 'assets', 'examples')
-        else:
-            example_path = os.path.join(str(_PROJECT_ROOT), 'assets', 'examples')
+        example_path = os.path.join(str(_PROJECT_ROOT), 'assets', 'examples')
 
         if name:
             filenames = [name]
