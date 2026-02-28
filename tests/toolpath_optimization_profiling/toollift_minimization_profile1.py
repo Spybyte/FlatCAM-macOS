@@ -1,6 +1,6 @@
 import cProfile
 import pstats
-from camlib import *
+from flatcam.cam.camlib import *
 from shapely.geometry import Polygon
 
 poly = Polygon([(0.0, 0.0), (1.0, 0.0), (1.0, 0.5), (0.0, 0.5)])

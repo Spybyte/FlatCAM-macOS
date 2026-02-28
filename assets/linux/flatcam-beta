@@ -2,4 +2,6 @@
 
 script_path=$(readlink -f $0)
 python_script_path=$(dirname $script_path)/../../
-python3 $python_script_path/FlatCAM.py $*
+export PYTHONPATH="$python_script_path/src:$PYTHONPATH"
+cd "$python_script_path"
+python3 -m flatcam $*

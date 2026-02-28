@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flatcam"
+version = "8.994"
+description = "2D Computer-Aided PCB Manufacturing"
+requires-python = ">=3.5"
+
+[tool.setuptools.packages.find]
+where = ["src"]

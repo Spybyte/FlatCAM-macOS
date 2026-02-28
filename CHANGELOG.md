@@ -7,6 +7,32 @@ CHANGELOG for FlatCAM beta
 
 =================================================
 
+28.02.2026
+
+- Major project restructuring: moved all Python source files into a proper package layout under src/flatcam/
+- New package structure with snake_case module naming:
+  - src/flatcam/core/ — common utilities, worker, pool, database, preprocessor base, translation
+  - src/flatcam/cam/ — camlib (CAM library)
+  - src/flatcam/gui/ — main window, UI elements, canvas, VisPy integration
+  - src/flatcam/gui/preferences/ — all preference group UIs (cncjob, excellon, general, geometry, gerber, tools, utilities)
+  - src/flatcam/objects/ — FlatCAM object classes (Gerber, Excellon, Geometry, CNCJob, Document, Script)
+  - src/flatcam/editors/ — geometry, excellon, gerber, gcode, and text editors
+  - src/flatcam/parsers/ — file format parsers (Gerber, Excellon, DXF, SVG, PDF, HPGL2, Font)
+  - src/flatcam/tools/ — all application tools (33 tools)
+  - src/flatcam/tcl/ — Tcl command framework and all 67 command modules
+  - src/flatcam/preprocessors/ — GCode preprocessor definitions (21 preprocessors)
+  - src/flatcam/vendor/descartes/ — vendored (patched) descartes library
+- Added pyproject.toml for modern Python packaging (pip install -e . support)
+- Added src/flatcam/__main__.py entry point: the app can now be launched with `python -m flatcam`
+- FlatCAM.py at project root is now a thin backward-compatible shim
+- All ~540 import statements rewritten from flat (e.g. `from appGUI.MainGUI import *`) to package-qualified (e.g. `from flatcam.gui.main_window import *`)
+- PROJECT_ROOT anchor in src/flatcam/__init__.py for reliable resource path resolution
+- Fixed dynamic preprocessor loading to search both package-bundled and user-installed preprocessors
+- Fixed TclCommand base class circular import with lazy import pattern
+- Updated Linux launcher script (assets/linux/flatcam-beta) to use `python3 -m flatcam`
+- Updated test file imports and documentation configuration
+- Removed all old top-level Python modules and package directories (appGUI/, appObjects/, appEditors/, appParsers/, appTools/, appCommon/, tclCommands/, preprocessors/, descartes/)
+
 7.11.2020
 
 - fixed a small issue in Excellon Editor that reset the delta coordinates on right mouse button click too, which was incorrect. Only left mouse button click should reset the delta coordinates.

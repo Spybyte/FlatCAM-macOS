@@ -1,5 +1,7 @@
 *.pyc
+__pycache__/
 .idea/
 tests/tmp/
 build/
 .mypy_cache/
+src/*.egg-info/

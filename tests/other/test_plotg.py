@@ -2,7 +2,7 @@ from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
 from matplotlib.pyplot import plot, subplot, show, axes
 from matplotlib.axes import *
-from camlib import *
+from flatcam.cam.camlib import *
 
 
 def plotg2(geo, solid_poly=False, color="black", linestyle='solid'):

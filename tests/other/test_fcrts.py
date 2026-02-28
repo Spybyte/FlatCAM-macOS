@@ -1,4 +1,4 @@
-from camlib import *
+from flatcam.cam.camlib import *
 from shapely.geometry import LineString, LinearRing
 
 s = FlatCAMRTreeStorage()

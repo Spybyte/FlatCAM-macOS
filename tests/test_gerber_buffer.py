@@ -1,5 +1,5 @@
 import unittest
-import camlib
+import flatcam.cam.camlib as camlib
 from flatcamParsers.ParseGerber import Gerber
 
 
