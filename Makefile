@@ -51,6 +51,25 @@ bundle: bundle-icon
 	codesign --force --deep --sign - dist/FlatCAM.app 2>/dev/null || true
 	@echo "Bundle created at dist/FlatCAM.app"
 
+# Extract version from source
+VERSION = $(shell python3 -c "import re, pathlib; print(re.search(r'__version__\s*=\s*\"([^\"]+)\"', pathlib.Path('src/flatcam/__init__.py').read_text()).group(1))")
+
+# Create a distributable DMG from the .app bundle (requires create-dmg: brew install create-dmg)
+dmg: bundle
+	@echo "Creating DMG for version $(VERSION)…"
+	create-dmg \
+		--volname "FlatCAM $(VERSION)" \
+		--volicon "assets/resources/FlatCAM.icns" \
+		--window-pos 200 120 \
+		--window-size 600 400 \
+		--icon "FlatCAM.app" 150 185 \
+		--app-drop-link 450 185 \
+		--no-internet-enable \
+		"dist/FlatCAM-$(VERSION)-arm64.dmg" \
+		"dist/FlatCAM.app" \
+		|| test $$? -eq 2
+	@echo "DMG created at dist/FlatCAM-$(VERSION)-arm64.dmg"
+
 # uv-based development targets
 sync:
 	uv sync
@@ -69,9 +88,9 @@ test:
 
 # Install system dependencies for macOS
 setup-macos:
-	brew install geos spatialindex freetype libpng
+	brew install uv geos spatialindex freetype libpng create-dmg
 	@echo ""
-	@echo "System dependencies installed. Run 'make install' next."
+	@echo "System dependencies installed. Run 'make sync' next."
 
 USER_ID = $(shell id -u)
 
