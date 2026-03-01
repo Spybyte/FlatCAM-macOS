@@ -1,0 +1,87 @@
+name: Version Bump
+
+# Runs after the Tests workflow completes successfully on main.
+# This ensures version is only bumped when tests pass.
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    # Only run if tests passed AND the triggering commit was not a version bump
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (
+        github.event.workflow_run.conclusion == 'success'
+        && !contains(github.event.workflow_run.head_commit.message, '[skip ci]')
+      )
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          # Use the default GITHUB_TOKEN — pushes with it skip triggering
+          # further workflow runs, preventing infinite loops.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse and bump version
+        id: bump
+        run: |
+          VERSION_FILE="src/flatcam/__init__.py"
+
+          # Extract current version string
+          CURRENT=$(grep -oP '__version__\s*=\s*"\K[^"]+' "$VERSION_FILE")
+          echo "Current version: $CURRENT"
+
+          # Match pattern: <base><alpha_suffix><number>
+          # Examples: 8.994dev1, 8.994m3, 8.994mac5
+          if [[ "$CURRENT" =~ ^(.+[^0-9])([0-9]+)$ ]]; then
+            PREFIX="${BASH_REMATCH[1]}"
+            SEQ="${BASH_REMATCH[2]}"
+
+            # Safety check: prefix must end with a letter (not a dot or other char)
+            if [[ ! "$PREFIX" =~ [a-zA-Z]$ ]]; then
+              echo "::warning::Version '$CURRENT' has no alphabetic suffix — skipping bump"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            NEW_SEQ=$((SEQ + 1))
+            NEW_VERSION="${PREFIX}${NEW_SEQ}"
+          else
+            echo "::warning::Version '$CURRENT' does not match expected pattern — skipping bump"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+          # Write new version back to file
+          sed -i "s/__version__ = \"${CURRENT}\"/__version__ = \"${NEW_VERSION}\"/" "$VERSION_FILE"
+
+          # Verify the change
+          grep '__version__' "$VERSION_FILE"
+
+      - name: Commit and tag
+        if: steps.bump.outputs.skip != 'true'
+        run: |
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add src/flatcam/__init__.py
+          git commit -m "chore: bump version to ${NEW_VERSION} [skip ci]"
+          git tag "v${NEW_VERSION}"
+          git push origin main --tags
