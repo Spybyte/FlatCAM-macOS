@@ -13,4 +13,4 @@ if getattr(sys, 'frozen', False):
 else:
 	PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-__version__ = "8.994dev2"
+__version__ = "8.994dev3"
