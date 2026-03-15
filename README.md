@@ -188,7 +188,7 @@ uv run flatcam
 
 | Role               | Name                          |
 |--------------------|-------------------------------|
-| macOS fork         | Björn Bubbat (2016–present)   |
+| macOS fork         | Björn Bubbat (2026–present)   |
 | FlatCAM BETA       | Marius Stanciu (2019)         |
 | Original FlatCAM   | Juan Pablo Caram (2014–2016)  |
 
