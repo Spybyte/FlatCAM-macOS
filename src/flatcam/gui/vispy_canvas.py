@@ -156,6 +156,10 @@ class Camera(scene.PanZoomCamera):
         if event.handled or not self.interactive:
             return
 
+        # Ignore non-mouse events (e.g. touch/gesture from trackpad)
+        if event.type not in ('mouse_wheel', 'mouse_move', 'mouse_press', 'mouse_release'):
+            return
+
         # key modifiers
         modifiers = event.mouse_event.modifiers
 

@@ -79,3 +79,26 @@ Tests live in `tests/` and are split into two categories:
 - `setup.py` is py2app-only (not used for normal installs). It monkey-patches `finalize_options` to clear `install_requires` (py2app >=0.28.9 rejects it, but setuptools auto-populates from pyproject.toml).
 - The `FlatCAM.py` shim at project root is the py2app entry point (`APP = ['FlatCAM.py']`).
 - Frozen-app detection: `getattr(sys, 'frozen', False)` — only use where behavior genuinely differs (resource paths, preprocessor loading). Don't add redundant identical-branch checks.
+
+## AI Agent Memory
+
+Use **repository memory** to persist important codebase facts discovered during tasks. Store facts under `/memories/repo/` when they meet all of these criteria:
+
+- Actionable for future coding or review tasks in this repo
+- Not obvious from a small code sample alone
+- Unlikely to change over time
+- Contains no secrets or sensitive data
+
+**What to store:**
+
+- Verified build/test/lint commands and their quirks
+- Non-obvious conventions (e.g. the i18n boilerplate, single `'base'` logger name, `self.app` wiring pattern)
+- Data model gotchas (e.g. Excellon drills are per-tool, no top-level list; Shapely multi-geometry requires `.geoms`)
+- Dependency constraints or compatibility notes (e.g. py2app `install_requires` monkey-patch)
+- Test infrastructure details (mock app fixture, `test_tclCommands/` exclusion pattern)
+
+**Format:** JSON with fields `subject`, `fact`, `citations`, `reason`, `category`.
+
+**When to store:** After discovering a non-obvious fact during a task—especially if you had to debug or research to find it. Before storing, check whether the fact is already captured in this instructions file; avoid duplicating what's already documented here.
+
+**When NOT to store:** Transient task context (use session memory instead), facts specific to a current uncommitted change, or anything already explicit in this document.
